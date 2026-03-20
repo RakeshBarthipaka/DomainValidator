@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% block title %}Lists – MailVerifyPro{% endblock %}
+
+{% block content %}
+<div class="h-full overflow-y-auto p-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-display text-2xl font-bold text-slate-800">Lists</h1>
+      <p class="text-slate-500 text-sm mt-1">Upload and manage your email lists</p>
+    </div>
+    <button onclick="openModal()"
+      class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+      style="background:linear-gradient(135deg,#0f172a,#1e3a5f)">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add New List
+    </button>
+  </div>
+
+  <!-- Files grid or empty state -->
+  {% if files %}
+  <div id="filesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for file in files %}
+    {% set s = file.status or 'complete' %}
+    {% set stats = file_stats.get(file.id, {}) %}
+    {% set total = stats.get('total', 0) %}
+    {% set valid = stats.get('valid', 0) %}
+    {% set invalid = stats.get('invalid', 0) %}
+    {% set unknown = stats.get('unknown', 0) %}
+    {% set disposable = stats.get('disposable', 0) %}
+    {% set job_id = stats.get('job_id', None) %}
+    {% set ext = file.file_name.rsplit('.', 1)[-1].upper() if '.' in file.file_name else 'FILE' %}
+
+    <div class="file-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-cyan-100 transition-all group cursor-pointer overflow-hidden"
+      data-file-id="{{ file.id }}" data-status="{{ s }}"
+      onclick="openVerifyFilter({{ file.id }}, event)">
+
+      <!-- Card header -->
+      <div class="px-5 pt-5 pb-4">
+        <div class="flex items-start justify-between mb-3">
+          <!-- Icon + file info -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">
+              <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="font-semibold text-slate-800 text-sm truncate" title="{{ file.file_name }}">
+                {{ file.file_name }}
+              </h3>
+              <p class="text-slate-400 text-xs mt-0.5">
+                Added &nbsp;{{ file.created_at.strftime('%b %d, %Y %I:%M %p') if file.created_at else '—' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Delete button -->
+          <form method="POST" action="/lists/delete/{{ file.id }}"
+            onsubmit="return confirm('Delete {{ file.file_name }}?')">
+            <button type="submit"
+              class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-200 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0 ml-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- Meta row: ext badge + job id + status -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs px-2 py-0.5 rounded font-mono font-medium
+            {% if ext == 'CSV' %}bg-blue-50 text-blue-600{% else %}bg-violet-50 text-violet-600{% endif %}">
+            .{{ ext }}
+          </span>
+
+          {% if job_id %}
+          <span class="text-xs text-slate-400">Job id: <span class="font-mono text-slate-600">{{ job_id }}</span></span>
+          {% endif %}
+
+          <div class="status-badge ml-auto">
+            {% if s == 'pending' or s == 'processing' %}
+            <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Verifying…
+            </span>
+            {% elif s == 'complete' %}
+            <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>complete
+            </span>
+            {% elif s == 'no_credits' %}
+            <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>No credits
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-600">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Failed
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Meta details -->
+        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          <span>Total records found: <strong class="text-slate-700">{{ file.total_emails }}</strong></span>
+          <span>Billable emails: <strong class="text-slate-700">{{ total }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Validation stats (only when verified and has results) -->
+      {% if s == 'complete' and total > 0 %}
+      <div class="border-t border-slate-50 px-5 py-4">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Validation Status</p>
+        <div class="space-y-2">
+
+          {% set rows = [
+            ('Valid',    '#22c55e', valid,      '#f0fdf4', '#16a34a'),
+            ('Invalid',  '#ef4444', invalid,    '#fef2f2', '#dc2626'),
+            ('Unknown',  '#94a3b8', unknown,    '#f8fafc', '#64748b'),
+            ('Disposable','#f59e0b', disposable, '#fffbeb', '#d97706'),
+          ] %}
+
+          {% for label, dot, count, bg, color in rows %}
+          {% set pct = ((count / total) * 100) | round(1) if total > 0 else 0 %}
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 w-32 flex-shrink-0">
+              <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:{{ dot }}"></span>
+              <span class="text-xs text-slate-600">{{ label }}</span>
+            </div>
+            <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+              {% if count > 0 %}
+              <div class="h-full rounded-full transition-all" style="width:{{ pct }}%;background:{{ dot }};opacity:0.7"></div>
+              {% endif %}
+            </div>
+            <span class="w-6 text-right text-xs font-semibold text-slate-700">{{ count if count > 0 else '—' }}</span>
+            <span class="w-10 text-right text-xs text-slate-400">{{ pct ~ '%' if count > 0 else '--%' }}</span>
+          </div>
+          {% endfor %}
+
+        </div>
+        <a href="https://neverbounce.com/help/status-mapping" target="_blank"
+          onclick="event.stopPropagation()"
+          class="inline-flex items-center gap-1 text-xs text-cyan-500 hover:text-cyan-700 mt-3 transition-colors">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          Learn more about status mapping
+        </a>
+      </div>
+      {% elif s == 'pending' or s == 'processing' %}
+      <div class="border-t border-slate-50 px-5 py-4">
+        <div class="flex items-center gap-2 text-xs text-amber-600">
+          <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          Verification in progress — results will appear shortly
+        </div>
+      </div>
+      {% elif s == 'no_credits' %}
+      <div class="border-t border-slate-50 px-5 py-4">
+        <div class="flex items-center gap-2 text-xs text-orange-600">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Insufficient NeverBounce credits — top up to verify
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="flex flex-col items-center justify-center text-center rounded-2xl p-16 bg-white border-2 border-dashed border-slate-200">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-slate-50">
+      <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+    </div>
+    <h3 class="font-semibold text-slate-600 mb-2">No lists uploaded yet</h3>
+    <p class="text-slate-400 text-sm mb-6 max-w-xs">Upload your first CSV or Excel file and we'll automatically extract all email addresses</p>
+    <button onclick="openModal()"
+      class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+      style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+      Upload a List
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- ── Upload Modal ── -->
+<div id="uploadModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+  style="background:rgba(0,0,0,0.55);backdrop-filter:blur(6px)">
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+    style="max-height:90vh;overflow-y:auto">
+
+    <!-- Modal header -->
+    <div class="flex items-center justify-between px-6 pt-6 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-blue-50">📋</div>
+        <div>
+          <h2 class="font-display text-lg font-bold text-slate-800">Add a new list</h2>
+          <p class="text-slate-400 text-xs">Upload CSV or Excel — emails extracted automatically</p>
+        </div>
+      </div>
+      <button onclick="closeModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal body -->
+    <div class="px-6 pb-6 flex gap-6">
+
+      <!-- Instructions column -->
+      <div class="w-52 flex-shrink-0">
+        <h3 class="font-semibold text-slate-700 text-sm mb-3">How it works</h3>
+        <ol class="space-y-3 text-sm text-slate-500">
+          <li class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+              style="background:#dbeafe;color:#1d4ed8">1</span>
+            Upload <strong class="text-slate-700">CSV</strong> or <strong class="text-slate-700">Excel</strong> 
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+              style="background:#dbeafe;color:#1d4ed8">2</span>
+            Emails are extracted from any column automatically
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+              style="background:#dbeafe;color:#1d4ed8">3</span>
+            Use the Verify page to validate your list
+          </li>
+        </ol>
+        <div class="mt-4 p-3 rounded-xl text-xs text-amber-700 flex items-start gap-2 bg-amber-50 border border-amber-100">
+          <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Max 10MB. Supported: .csv, .xls, .xlsx
+        </div>
+      </div>
+
+      <!-- Drop zone column -->
+      <div class="flex-1 min-w-0">
+
+        <!-- Drop zone (hidden when success) -->
+        <div id="dropArea">
+          <div id="dropzone"
+            class="rounded-xl flex flex-col items-center justify-center gap-3 cursor-pointer h-48 transition-all select-none"
+            style="border:2px dashed #cbd5e1;background:#fafafa"
+            ondragover="event.preventDefault();setDragStyle(true)"
+            ondragleave="setDragStyle(false)"
+            ondrop="event.preventDefault();setDragStyle(false);handleDrop(event)"
+            onclick="document.getElementById('fileInput').click()">
+
+            <div id="dropContent" class="flex flex-col items-center gap-2 text-center px-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-50">
+                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-slate-600 font-medium">Drop your file here</p>
+                <p class="text-xs text-slate-400 mt-0.5">or <span class="text-cyan-500 font-medium">click to browse</span></p>
+              </div>
+            </div>
+
+            <input id="fileInput" type="file" accept=".csv,.xls,.xlsx" class="hidden"
+              onchange="handleFileSelect(event)"/>
+          </div>
+
+          <!-- Upload button (shown after file selected) -->
+          <div id="uploadBtnWrap" class="hidden mt-3">
+            <button onclick="doUpload()" id="uploadBtn"
+              class="w-full py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
+              style="background:linear-gradient(135deg,#0f172a,#1e3a5f)">
+              Upload List
+            </button>
+          </div>
+        </div>
+
+        <!-- Success state (hidden initially) -->
+        <div id="successArea" class="hidden flex-col items-center justify-center text-center gap-4 py-6">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center bg-emerald-50">
+            <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold text-slate-700" id="successName"></p>
+            <p class="text-sm text-emerald-600 mt-1" id="successMsg"></p>
+          </div>
+          <button onclick="location.reload()"
+            class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+            style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+            View Lists →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedFile = null;
+
+function openModal() {
+  document.getElementById('uploadModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('uploadModal').style.display = 'none';
+  document.body.style.overflow = '';
+  resetDropzone();
+}
+
+function setDragStyle(active) {
+  const dz = document.getElementById('dropzone');
+  dz.style.borderColor = active ? '#06b6d4' : (selectedFile ? '#10b981' : '#cbd5e1');
+  dz.style.background   = active ? '#f0fdfe' : (selectedFile ? '#f0fdf4' : '#fafafa');
+}
+
+function resetDropzone() {
+  selectedFile = null;
+  document.getElementById('dropzone').style.borderColor = '#cbd5e1';
+  document.getElementById('dropzone').style.background   = '#fafafa';
+  document.getElementById('dropContent').innerHTML = `
+    <div class="flex flex-col items-center gap-2 text-center px-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-50">
+        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-sm text-slate-600 font-medium">Drop your file here</p>
+        <p class="text-xs text-slate-400 mt-0.5">or <span class="text-cyan-500 font-medium">click to browse</span></p>
+      </div>
+    </div>`;
+  document.getElementById('uploadBtnWrap').classList.add('hidden');
+  document.getElementById('dropArea').style.display = 'block';
+  document.getElementById('successArea').style.display = 'none';
+  document.getElementById('successArea').classList.remove('flex');
+  document.getElementById('fileInput').value = '';
+}
+
+function handleDrop(e) {
+  setFile(e.dataTransfer.files[0]);
+}
+
+function handleFileSelect(e) {
+  setFile(e.target.files[0]);
+}
+
+function setFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['csv', 'xls', 'xlsx'].includes(ext)) {
+    showToast('Only .csv, .xls, .xlsx files are supported.', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File exceeds 10MB limit.', 'error');
+    return;
+  }
+  selectedFile = file;
+  setDragStyle(false);
+  document.getElementById('dropContent').innerHTML = `
+    <div class="flex flex-col items-center gap-1.5 text-center px-4">
+      <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-sm font-semibold text-emerald-600 break-all">${file.name}</p>
+      <p class="text-xs text-slate-400">${(file.size/1024).toFixed(1)} KB · click to change</p>
+    </div>`;
+  document.getElementById('uploadBtnWrap').classList.remove('hidden');
+}
+
+async function doUpload() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="flex items-center justify-center gap-2">
+    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>Uploading...</span>`;
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    const res  = await fetch('/lists/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      showToast(data.error || 'Upload failed.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Upload List';
+      return;
+    }
+
+    // Close modal immediately
+    closeModal();
+
+    // Inject new card into grid (or replace empty state)
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const ext   = data.file_name.split('.').pop().toUpperCase();
+    const extClass = ext === 'CSV' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600';
+
+    const cardHtml = `
+      <div class="file-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+        data-file-id="${data.file_id}" data-status="pending">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#f0fdf4">
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <form method="POST" action="/lists/delete/${data.file_id}" onsubmit="return confirm('Delete this file?')">
+            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-200 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+        <h3 class="font-semibold text-slate-800 text-sm mb-1 truncate" title="${data.file_name}">${data.file_name}</h3>
+        <span class="text-xs px-2 py-0.5 rounded font-mono font-medium ${extClass}">.${ext}</span>
+        <div class="mt-2 status-badge">
+          <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Verifying…
+          </span>
+        </div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+          <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-emerald-100 text-emerald-700">
+            ${data.emails_found} emails
+          </span>
+          <span class="text-xs text-slate-400">${today}</span>
+        </div>
+      </div>`;
+
+    // Show grid if it was hidden (empty state)
+    let grid = document.getElementById('filesGrid');
+    if (!grid) {
+      document.querySelector('.h-full').innerHTML =
+        `<div class="flex items-center justify-between mb-8">
+          <div><h1 class="font-display text-2xl font-bold text-slate-800">Lists</h1>
+          <p class="text-slate-500 text-sm mt-1">Upload and manage your email lists</p></div>
+          <button onclick="openModal()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#0f172a,#1e3a5f)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Add New List
+          </button></div>
+         <div id="filesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
+      grid = document.getElementById('filesGrid');
+    }
+    grid.insertAdjacentHTML('afterbegin', cardHtml);
+    showToast(`${data.emails_found} emails uploaded — verifying in background…`);
+
+    // Poll status every 4s until complete/failed
+    pollFileStatus(data.file_id);
+
+  } catch (err) {
+    showToast('Network error — please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Upload List';
+  }
+}
+
+// ── Poll file status and update the card badge ─────────────────────────────────
+function pollFileStatus(fileId) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch(`/lists/status/${fileId}`);
+      const data = await res.json();
+      const card = document.querySelector(`.file-card[data-file-id="${fileId}"]`);
+      if (!card) { clearInterval(interval); return; }
+
+      const status = data.status;
+      card.dataset.status = status;
+
+      const badgeWrap = card.querySelector('.status-badge');
+      if (!badgeWrap) { clearInterval(interval); return; }
+
+      if (status === 'complete') {
+        badgeWrap.innerHTML = `<span class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>complete</span>`;
+        showToast(`${data.file_name} verified — reloading…`);
+        clearInterval(interval);
+        setTimeout(() => location.reload(), 1200);
+      } else if (status === 'no_credits') {
+        badgeWrap.innerHTML = `<span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold bg-orange-100 text-orange-700">
+          <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>No credits</span>`;
+        showToast('Verification stopped — NeverBounce account has 0 credits.', 'error');
+        clearInterval(interval);
+      } else if (status === 'failed') {
+        badgeWrap.innerHTML = `<span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-600">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Failed</span>`;
+        showToast('Verification failed. Please try again.', 'error');
+        clearInterval(interval);
+      }
+      // pending / processing → keep polling
+    } catch (e) {
+      clearInterval(interval);
+    }
+  }, 4000);
+}
+
+function openVerifyFilter(fileId, event) {
+  // Don't trigger when clicking the delete button
+  if (event.target.closest('form')) return;
+  window.location.href = `/verify?file_id=${fileId}`;
+}
+
+document.getElementById('uploadModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

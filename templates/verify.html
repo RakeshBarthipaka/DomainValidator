@@ -1,0 +1,870 @@
+{% extends "base.html" %}
+{% block title %}Verify – MailVerifyPro{% endblock %}
+
+{% block content %}
+{% set page = page | default(1) %}
+{% set per_page = per_page | default(20) %}
+{% set total = total | default(history | length) %}
+{% set total_pages = total_pages | default(1) %}
+<div class="flex h-full overflow-hidden">
+
+  <!-- ── Left sidebar ── -->
+  <div class="w-72 flex-shrink-0 flex flex-col bg-white border-r border-slate-100 overflow-hidden">
+
+    <div class="p-5 pb-3 border-b border-slate-50">
+      <h1 class="font-display text-xl font-bold text-slate-800 mb-3">Verify</h1>
+      <!-- Tabs -->
+      <div class="flex gap-1 p-1 rounded-xl bg-slate-100">
+        <button id="tabVerifyBtn" onclick="switchTab('verify')"
+          class="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+          style="background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+          Email Verify
+        </button>
+        <button id="tabFilterBtn" onclick="switchTab('filter')"
+          class="flex-1 py-2 rounded-lg text-xs font-semibold transition-all text-slate-400"
+          style="background:transparent">
+          Filter
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Verify panel ── -->
+    <div id="panelVerify" class="flex-1 p-5 overflow-y-auto flex flex-col gap-4">
+      <div>
+        <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Enter emails</label>
+        <textarea id="emailInput"
+          placeholder="one@example.com&#10;two@example.com&#10;or comma separated..."
+          rows="8"
+          class="w-full p-3 rounded-xl text-sm text-slate-700 outline-none resize-none transition-all"
+          style="border:1.5px solid #e2e8f0;background:#fafafa"
+          onfocus="this.style.borderColor='#06b6d4';this.style.background='#fff'"
+          onblur="this.style.borderColor='#e2e8f0';this.style.background='#fafafa'"></textarea>
+        <p class="text-slate-400 text-xs mt-1.5">1 credit per email · max 10 · Ctrl+Enter</p>
+      </div>
+      <button onclick="doVerify()" id="verifyBtn"
+        class="w-full py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+        style="background:linear-gradient(135deg,#0f172a,#1e3a5f)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Validate
+      </button>
+    </div>
+
+    <!-- ── Filter panel ── -->
+    <div id="panelFilter" class="hidden flex-1 overflow-y-auto">
+      <div class="p-5 flex flex-col gap-5">
+
+        <!-- Email search -->
+        <div>
+          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Email</label>
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" id="filterEmail" placeholder="Search by email..."
+              oninput="applyFilters()"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs outline-none transition-all"
+              style="border:1.5px solid #e2e8f0;background:#fafafa"
+              onfocus="this.style.borderColor='#06b6d4';this.style.background='#fff'"
+              onblur="this.style.borderColor='#e2e8f0';this.style.background='#fafafa'"/>
+          </div>
+        </div>
+
+        <!-- Status filter -->
+        <div>
+          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Status</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setFilter('status','all',this)" data-group="status"
+              class="fbtn active-filter px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all"
+              style="background:#0f172a">All</button>
+            <button onclick="setFilter('status','success',this)" data-group="status"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              🔵 Success</button>
+            <button onclick="setFilter('status','failed',this)" data-group="status"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              🔴 Failed</button>
+          </div>
+        </div>
+
+        <!-- Result filter -->
+        <div>
+          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Result</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setFilter('result','all',this)" data-group="result"
+              class="fbtn active-filter px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all"
+              style="background:#0f172a">All</button>
+            <button onclick="setFilter('result','valid',this)" data-group="result"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              🟢 Valid</button>
+            <button onclick="setFilter('result','invalid',this)" data-group="result"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              🔴 Invalid</button>
+            <button onclick="setFilter('result','unknown',this)" data-group="result"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              🟡 Unknown</button>
+          </div>
+        </div>
+
+        <!-- Created At filter -->
+        <div>
+          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Created At</label>
+
+          <!-- Quick presets -->
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            <button onclick="setDatePreset('all',this)" data-group="date"
+              class="fbtn active-filter px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all"
+              style="background:#0f172a">All</button>
+            <button onclick="setDatePreset('today',this)" data-group="date"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              Today</button>
+            <button onclick="setDatePreset('week',this)" data-group="date"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              This Week</button>
+            <button onclick="setDatePreset('month',this)" data-group="date"
+              class="fbtn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+              This Month</button>
+          </div>
+
+          <!-- Custom date range -->
+          <div class="rounded-xl p-3 flex flex-col gap-2" style="background:#f8fafc;border:1.5px solid #e2e8f0">
+            <div>
+              <label class="block text-slate-400 text-xs mb-1">From</label>
+              <input type="date" id="dateFrom" onchange="applyDateRange()"
+                class="w-full px-3 py-1.5 rounded-lg text-xs outline-none transition-all"
+                style="border:1.5px solid #e2e8f0;background:#fff;color:#334155"
+                onfocus="this.style.borderColor='#06b6d4'"
+                onblur="this.style.borderColor='#e2e8f0'"/>
+            </div>
+            <div>
+              <label class="block text-slate-400 text-xs mb-1">To</label>
+              <input type="date" id="dateTo" onchange="applyDateRange()"
+                class="w-full px-3 py-1.5 rounded-lg text-xs outline-none transition-all"
+                style="border:1.5px solid #e2e8f0;background:#fff;color:#334155"
+                onfocus="this.style.borderColor='#06b6d4'"
+                onblur="this.style.borderColor='#e2e8f0'"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Name filter -->
+        {% if user_files %}
+        <div>
+          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">File Name</label>
+          <div class="flex flex-col gap-1.5" id="fileBtns">
+            <button onclick="setFilter('file','all',this)" data-group="file"
+              class="fbtn w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-white transition-all flex items-center gap-2"
+              style="background:#0f172a">
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+              All Files
+            </button>
+            <button onclick="setFilter('file','none',this)" data-group="file"
+              class="fbtn w-full text-left px-3 py-2 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              Manual (no file)
+            </button>
+            {% for f in user_files %}
+            <button onclick="setFilter('file','{{ f.id }}',this)" data-group="file"
+              class="fbtn w-full text-left px-3 py-2 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all flex items-center gap-2"
+              title="{{ f.file_name }}">
+              <svg class="w-3.5 h-3.5 flex-shrink-0 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span class="truncate">{{ f.file_name }}</span>
+              <span class="ml-auto flex-shrink-0 text-slate-400">{{ f.total_emails }}</span>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Reset -->
+        <button onclick="resetFilters()"
+          class="w-full py-2 rounded-xl text-xs font-semibold border transition-all text-slate-500 hover:text-slate-700 hover:border-slate-400"
+          style="border:1.5px solid #e2e8f0">
+          Reset Filters
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Right content ── -->
+  <div class="flex-1 overflow-y-auto bg-slate-50">
+
+    <!-- History panel (Email Verify tab) -->
+    <div id="resultsPanel" class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-display font-bold text-slate-700 text-lg">Result History</h2>
+          <p class="text-slate-400 text-xs mt-0.5" id="historyCount"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Quick search -->
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input id="searchInput" type="text" placeholder="Quick search..."
+              oninput="quickSearch()"
+              class="pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all w-52"
+              style="border:1.5px solid #e2e8f0;background:#fff"
+              onfocus="this.style.borderColor='#06b6d4'"
+              onblur="this.style.borderColor='#e2e8f0'"/>
+          </div>
+          <div class="relative" id="exportWrap">
+            <button onclick="toggleExportMenu('exportWrap')"
+              class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+              style="background:#0f172a">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export
+              <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div id="exportWrapMenu" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-100 rounded-xl shadow-lg z-50 overflow-hidden">
+              <button onclick="exportCSV('history-page');toggleExportMenu('exportWrap')"
+                class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Current Page
+              </button>
+              <button onclick="exportCSV('history-all');toggleExportMenu('exportWrap')"
+                class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-50">
+                <svg class="w-3.5 h-3.5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export All
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100">
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Result</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Time</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">OK to send?</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            {% if history %}
+              {% for row in history %}
+              {% set is_valid   = row.result == 'valid' %}
+              {% set is_invalid = row.result == 'invalid' %}
+              <tr class="border-t border-slate-50 hover:bg-slate-50 transition-colors history-row"
+                data-email="{{ row.email }}"
+                data-status="{{ row.status or '' }}"
+                data-result="{{ row.result or '' }}"
+                data-ts="{{ row.created_at.timestamp() | int if row.created_at else 0 }}"
+                data-fileid="{{ row.file_id or '' }}">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0
+                      {% if is_valid %}bg-emerald-400{% elif is_invalid %}bg-red-400{% else %}bg-amber-400{% endif %}"></span>
+                    <span class="font-mono text-slate-700 text-xs">
+                      {{ row.email[:38] }}{% if row.email|length > 38 %}…{% endif %}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                    {% if row.status == 'success' %}bg-blue-100 text-blue-700
+                    {% elif row.status == 'failed' %}bg-red-100 text-red-600
+                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                    {{ row.status | capitalize if row.status else '—' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                    {% if is_valid %}bg-emerald-100 text-emerald-700
+                    {% elif is_invalid %}bg-red-100 text-red-600
+                    {% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {{ row.result | capitalize if row.result else '—' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
+                  {{ row.created_at.strftime('%b %d, %H:%M') if row.created_at else '—' }}
+                </td>
+                <td class="px-4 py-3 text-xs font-medium
+                  {% if is_valid %}text-emerald-600{% elif is_invalid %}text-red-500{% else %}text-amber-600{% endif %}">
+                  {% if is_valid %}✓ Safe to send{% elif is_invalid %}✗ Do not send{% else %}⚠ Review required{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr id="emptyRow">
+                <td colspan="5" class="py-16 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                    <p class="text-slate-400 text-sm">No verifications yet — enter emails and click Validate</p>
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-slate-400 text-xs mt-3">
+        <a href="https://neverbounce.com/help/status-mapping" target="_blank"
+          class="text-cyan-500 hover:text-cyan-700 transition-colors">Learn more about NeverBounce status mapping ↗</a>
+      </p>
+
+      <!-- ── Pagination (JS-driven, works with quick search) ── -->
+      <div id="paginationBar" class="flex items-center justify-between mt-4 px-1 hidden">
+        <p class="text-xs text-slate-400" id="pageInfo"></p>
+        <div class="flex items-center gap-1" id="pageButtons"></div>
+      </div>
+    </div>
+
+    <!-- Filtered results panel (Filter tab) -->
+    <div id="filteredPanel" class="hidden p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-display font-bold text-slate-700 text-lg">Filtered Results</h2>
+          <p class="text-slate-400 text-xs mt-0.5" id="filteredCount">Showing all results</p>
+        </div>
+        <div class="relative" id="exportFilterWrap">
+          <button onclick="toggleExportMenu('exportFilterWrap')"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+            style="background:#0f172a">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Export
+            <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div id="exportFilterWrapMenu" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-100 rounded-xl shadow-lg z-50 overflow-hidden">
+            <button onclick="exportCSV('filtered-page');toggleExportMenu('exportFilterWrap')"
+              class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Current Page
+            </button>
+            <button onclick="exportCSV('filtered-all');toggleExportMenu('exportFilterWrap')"
+              class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-50">
+              <svg class="w-3.5 h-3.5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100">
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Result</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Time</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">OK to send?</th>
+            </tr>
+          </thead>
+          <tbody id="filteredBody">
+            <tr id="filteredEmpty">
+              <td colspan="5" class="py-14 text-center text-slate-400 text-sm">Select filters on the left to view results</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Filter pagination -->
+      <div id="filterPaginationBar" class="flex items-center justify-between mt-4 px-1 hidden">
+        <p class="text-xs text-slate-400" id="filterPageInfo"></p>
+        <div class="flex items-center gap-1" id="filterPageButtons"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── All history rows as JS data (for filtering) ────────────────────────────────
+const ALL_ROWS = [
+  {% for row in history %}
+  {
+    email:   {{ row.email | tojson }},
+    status:  {{ (row.status or '') | tojson }},
+    result:  {{ (row.result or '') | tojson }},
+    time:    {{ (row.created_at.strftime('%b %d, %H:%M') if row.created_at else '') | tojson }},
+    ts:      {{ row.created_at.timestamp() | int if row.created_at else 0 }},
+    file_id: {{ row.file_id | tojson if row.file_id else 'null' }},
+  },
+  {% endfor %}
+];
+
+// ── Active filter state ────────────────────────────────────────────────────────
+const filters = { status: 'all', result: 'all', date: 'all', dateFrom: null, dateTo: null, email: '', file: 'all' };
+
+// ── Date preset buttons (Today / This Week / This Month / All) ─────────────────
+function setDatePreset(val, btn) {
+  filters.date = val;
+  filters.dateFrom = null;
+  filters.dateTo   = null;
+  // Clear custom date inputs
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value   = '';
+  // Update button styles
+  document.querySelectorAll('[data-group="date"]').forEach(b => {
+    b.style.cssText = 'background:#f1f5f9;color:#475569';
+  });
+  btn.style.cssText = 'background:#0f172a;color:#fff';
+  applyFilters();
+}
+
+// ── Custom date range inputs ───────────────────────────────────────────────────
+function applyDateRange() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  if (!from && !to) return;
+  filters.date     = 'custom';
+  filters.dateFrom = from ? new Date(from + 'T00:00:00').getTime() / 1000 : null;
+  filters.dateTo   = to   ? new Date(to   + 'T23:59:59').getTime() / 1000 : null;
+  // Deactivate all preset buttons
+  document.querySelectorAll('[data-group="date"]').forEach(b => {
+    b.style.cssText = 'background:#f1f5f9;color:#475569';
+  });
+  applyFilters();
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isVerify = tab === 'verify';
+  document.getElementById('panelVerify').classList.toggle('hidden', !isVerify);
+  document.getElementById('panelFilter').classList.toggle('hidden', isVerify);
+  document.getElementById('resultsPanel').classList.toggle('hidden', !isVerify);
+  document.getElementById('filteredPanel').classList.toggle('hidden', isVerify);
+
+  const tV = document.getElementById('tabVerifyBtn');
+  const tF = document.getElementById('tabFilterBtn');
+  if (isVerify) {
+    tV.style.cssText = 'background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)';
+    tF.style.cssText = 'background:transparent;color:#94a3b8';
+  } else {
+    tF.style.cssText = 'background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)';
+    tV.style.cssText = 'background:transparent;color:#94a3b8';
+    applyFilters(); // render immediately when switching to filter tab
+  }
+}
+
+// ── Filter button toggle ───────────────────────────────────────────────────────
+function setFilter(group, val, btn) {
+  filters[group] = val;
+  // Update button styles in this group
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => {
+    b.style.cssText = 'background:#f1f5f9;color:#475569';
+  });
+  btn.style.cssText = 'background:#0f172a;color:#fff';
+  applyFilters();
+}
+
+// ── Filter pagination state ────────────────────────────────────────────────────
+let filteredPage = 1;
+let lastFilteredRows = [];   // store last filtered result for pagination
+
+// ── Apply all filters ──────────────────────────────────────────────────────────
+function applyFilters() {
+  filteredPage = 1;   // reset to page 1 on any filter change
+  const now    = Date.now() / 1000;
+  const emailQ = (document.getElementById('filterEmail')?.value || '').toLowerCase().trim();
+
+  lastFilteredRows = ALL_ROWS.filter(r => {
+    if (emailQ && !r.email.toLowerCase().includes(emailQ)) return false;
+    if (filters.status !== 'all' && r.status.toLowerCase() !== filters.status) return false;
+    if (filters.result !== 'all' && r.result.toLowerCase() !== filters.result) return false;
+    if (filters.date === 'today') {
+      const d = new Date(r.ts * 1000), t = new Date();
+      if (d.toDateString() !== t.toDateString()) return false;
+    } else if (filters.date === 'week') {
+      if (now - r.ts > 7 * 86400) return false;
+    } else if (filters.date === 'month') {
+      if (now - r.ts > 30 * 86400) return false;
+    } else if (filters.date === 'custom') {
+      if (filters.dateFrom && r.ts < filters.dateFrom) return false;
+      if (filters.dateTo   && r.ts > filters.dateTo)   return false;
+    }
+    if (filters.file === 'none') {
+      if (r.file_id !== null) return false;
+    } else if (filters.file !== 'all') {
+      if (String(r.file_id) !== filters.file) return false;
+    }
+    return true;
+  });
+
+  renderFilteredPage(filteredPage);
+}
+
+function renderFilteredPage(page) {
+  filteredPage = page;
+  const rows     = lastFilteredRows;
+  const total    = rows.length;
+  const totPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (filteredPage > totPages) filteredPage = totPages;
+
+  const start = (filteredPage - 1) * PAGE_SIZE;
+  const end   = start + PAGE_SIZE;
+  const slice = rows.slice(start, end);
+
+  const tbody   = document.getElementById('filteredBody');
+  const countEl = document.getElementById('filteredCount');
+
+  if (!total) {
+    tbody.innerHTML = `<tr><td colspan="5" class="py-14 text-center text-slate-400 text-sm">No results match the selected filters</td></tr>`;
+    countEl.textContent = '0 results';
+    document.getElementById('filterPaginationBar').classList.add('hidden');
+    return;
+  }
+
+  countEl.textContent = `${start+1}–${Math.min(end,total)} of ${total} result${total!==1?'s':''}`;
+
+  tbody.innerHTML = slice.map(r => {
+    const isValid   = r.result === 'valid';
+    const isInvalid = r.result === 'invalid';
+    const dotColor  = isValid ? 'bg-emerald-400' : isInvalid ? 'bg-red-400' : 'bg-amber-400';
+    const statusBadge = r.status === 'success' ? 'bg-blue-100 text-blue-700'
+      : r.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600';
+    const resultBadge = isValid ? 'bg-emerald-100 text-emerald-700'
+      : isInvalid ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700';
+    const okColor = isValid ? 'text-emerald-600' : isInvalid ? 'text-red-500' : 'text-amber-600';
+    const okText  = isValid ? '✓ Safe to send' : isInvalid ? '✗ Do not send' : '⚠ Review required';
+    const emailTrunc = r.email.length > 38 ? r.email.slice(0,38)+'…' : r.email;
+    return `<tr class="border-t border-slate-50 hover:bg-slate-50 filtered-row" data-email="${r.email}">
+      <td class="px-5 py-3"><div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotColor}"></span>
+        <span class="font-mono text-slate-700 text-xs">${emailTrunc}</span>
+      </div></td>
+      <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}">${r.status?r.status[0].toUpperCase()+r.status.slice(1):'—'}</span></td>
+      <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${resultBadge}">${r.result?r.result[0].toUpperCase()+r.result.slice(1):'—'}</span></td>
+      <td class="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">${r.time||'—'}</td>
+      <td class="px-4 py-3 text-xs font-medium ${okColor}">${okText}</td>
+    </tr>`;
+  }).join('');
+
+  // Render pagination bar
+  renderPaginationBar(
+    'filterPaginationBar', 'filterPageInfo', 'filterPageButtons',
+    filteredPage, totPages, start, end, total,
+    (p) => renderFilteredPage(p)
+  );
+}
+
+// ── Reset all filters ──────────────────────────────────────────────────────────
+function resetFilters() {
+  filters.status = 'all'; filters.result = 'all'; filters.date = 'all';
+  filters.dateFrom = null; filters.dateTo = null; filters.file = 'all';
+  document.getElementById('filterEmail').value = '';
+  document.getElementById('dateFrom').value    = '';
+  document.getElementById('dateTo').value      = '';
+  document.querySelectorAll('.fbtn').forEach(b => {
+    b.style.cssText = 'background:#f1f5f9;color:#475569';
+  });
+  ['status','result','date','file'].forEach(g => {
+    const btn = document.querySelector(`.fbtn[data-group="${g}"]`);
+    if (btn) btn.style.cssText = 'background:#0f172a;color:#fff';
+  });
+  applyFilters();
+  showToast('Filters reset');
+}
+
+// ── Shared pagination bar renderer ────────────────────────────────────────────
+function renderPaginationBar(barId, infoId, btnsId, curPage, totalPages, start, end, total, goTo) {
+  const bar = document.getElementById(barId);
+  if (!bar) return;
+  if (totalPages <= 1) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+
+  document.getElementById(infoId).textContent = `${start+1}–${Math.min(end,total)} of ${total}`;
+
+  const btns     = document.getElementById(btnsId);
+  btns.innerHTML = '';
+
+  const base   = 'w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-all';
+  const inact  = `${base} text-slate-600 bg-white border border-slate-200 hover:bg-slate-50`;
+  const disab  = `${base} text-slate-300 bg-white border border-slate-100 cursor-not-allowed`;
+  const active = `${base} text-white`;
+
+  const mk = (html, cls, cb) => {
+    const el = cb ? document.createElement('button') : document.createElement('span');
+    el.className = cls; el.innerHTML = html;
+    if (cb) el.onclick = cb;
+    btns.appendChild(el);
+  };
+
+  const prevSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`;
+  const nextSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+
+  // Prev
+  curPage > 1 ? mk(prevSvg, inact, () => goTo(curPage-1)) : mk(prevSvg, disab, null);
+
+  // Page window
+  const ws = Math.max(1, curPage-2), we = Math.min(totalPages, curPage+2);
+  if (ws > 1) {
+    mk('1', inact, () => goTo(1));
+    if (ws > 2) mk('…', 'w-5 text-center text-slate-400 text-xs', null);
+  }
+  for (let p = ws; p <= we; p++) {
+    if (p === curPage) {
+      const el = document.createElement('span');
+      el.className = active; el.style.background='#0f172a'; el.textContent = p;
+      btns.appendChild(el);
+    } else {
+      mk(String(p), inact, ((pg)=>()=>goTo(pg))(p));
+    }
+  }
+  if (we < totalPages) {
+    if (we < totalPages-1) mk('…', 'w-5 text-center text-slate-400 text-xs', null);
+    mk(String(totalPages), inact, () => goTo(totalPages));
+  }
+
+  // Next
+  curPage < totalPages ? mk(nextSvg, inact, () => goTo(curPage+1)) : mk(nextSvg, disab, null);
+}
+
+// ── Pagination engine for history tab ─────────────────────────────────────────
+const PAGE_SIZE = 6;
+let currentPage = 1;
+
+function getAllRows() {
+  return [...document.querySelectorAll('.history-row')];
+}
+
+function renderPage(page) {
+  currentPage = page;
+  const allRows = getAllRows();
+  const searchQ = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const matching = allRows.filter(r => !searchQ || r.dataset.email.toLowerCase().includes(searchQ));
+
+  const total      = matching.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const end   = start + PAGE_SIZE;
+
+  allRows.forEach(r => r.style.display = 'none');
+  matching.forEach((r, i) => { r.style.display = (i >= start && i < end) ? '' : 'none'; });
+
+  const countEl = document.getElementById('historyCount');
+  if (countEl) countEl.textContent = total === 0 ? '0 results' : `Showing ${start+1}–${Math.min(end,total)} of ${total}`;
+
+  renderPaginationBar('paginationBar','pageInfo','pageButtons', currentPage, totalPages, start, end, total, renderPage);
+}
+
+// ── Quick search ────────────────────────────────────────────────────────────────
+function quickSearch() {
+  currentPage = 1;   // reset to page 1 on search
+  renderPage(1);
+}
+
+// Init pagination on load
+document.addEventListener('DOMContentLoaded', () => renderPage(1));
+
+// ── Verify emails ──────────────────────────────────────────────────────────────
+async function doVerify() {
+  const raw = document.getElementById('emailInput').value.trim();
+  if (!raw) { showToast('Please enter at least one email address.', 'error'); return; }
+
+  const emails = raw.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
+  if (!emails.length) { showToast('No valid emails found.', 'error'); return; }
+  if (emails.length > 10) { showToast('Maximum 10 emails per request.', 'error'); return; }
+
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+  </svg> Validating ${emails.length}...`;
+
+  try {
+    const res  = await fetch('/api/verify', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ emails })
+    });
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    const data = await res.json();
+    if (data.error) { showToast(data.error, 'error'); return; }
+
+    const items = data.results || data; // support both formats
+    const skipped = data.skipped_duplicates || 0;
+
+    const emptyRow = document.getElementById('emptyRow');
+    if (emptyRow) emptyRow.remove();
+
+    const tbody = document.getElementById('historyBody');
+    [...items].reverse().forEach(r => {
+      const isValid   = r.result === 'valid';
+      const isInvalid = r.result === 'invalid';
+      const dotColor  = isValid ? 'bg-emerald-400' : isInvalid ? 'bg-red-400' : 'bg-amber-400';
+      const statusBadge = r.status === 'success' ? 'bg-blue-100 text-blue-700'
+        : r.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600';
+      const resultBadge = isValid ? 'bg-emerald-100 text-emerald-700'
+        : isInvalid ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700';
+      const okColor = isValid ? 'text-emerald-600' : isInvalid ? 'text-red-500' : 'text-amber-600';
+      const okText  = isValid ? '✓ Safe to send' : isInvalid ? '✗ Do not send' : '⚠ Review required';
+      const whitelistedBadge = r.whitelisted
+        ? `<span class="ml-1 px-1.5 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-600" title="Domain whitelisted — no credits used">🏷 Free</span>`
+        : r.pre_validated
+        ? `<span class="ml-1 px-1.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-500" title="Failed pre-validation: ${r.skip_reason || 'invalid'} — no credits used">⚡ Pre-checked</span>`
+        : '';
+
+      ALL_ROWS.unshift({ email: r.email, status: r.status, result: r.result, time: r.created_at, ts: Date.now()/1000, file_id: r.file_id || null });
+
+      const tr = document.createElement('tr');
+      tr.className = 'border-t border-slate-50 hover:bg-slate-50 transition-colors history-row';
+      tr.dataset.email  = r.email;
+      tr.dataset.status = r.status;
+      tr.dataset.result = r.result;
+      tr.innerHTML = `
+        <td class="px-5 py-3"><div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotColor}"></span>
+          <span class="font-mono text-slate-700 text-xs">${r.email.length>38?r.email.slice(0,38)+'…':r.email}</span>
+          ${whitelistedBadge}
+        </div></td>
+        <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}">${r.status?r.status[0].toUpperCase()+r.status.slice(1):'—'}</span></td>
+        <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${resultBadge}">${r.result?r.result[0].toUpperCase()+r.result.slice(1):'—'}</span></td>
+        <td class="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">${r.created_at||'Just now'}</td>
+        <td class="px-4 py-3 text-xs font-medium ${okColor}">${okText}</td>`;
+      tbody.prepend(tr);
+    });
+
+    document.getElementById('emailInput').value = '';
+    const dupMsg     = skipped > 0 ? ` · ${skipped} duplicate${skipped>1?'s':''} skipped` : '';
+    const invalidMsg = (data.invalid_count||0) > 0 ? ` · ${data.invalid_count} invalid stored` : '';
+    showToast(`${items.length} email${items.length>1?'s':''} verified!${dupMsg}${invalidMsg}`);
+    renderPage(1); // reset to first page after new results
+
+  } catch(err) {
+    showToast('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg> Validate`;
+  }
+}
+
+// ── Export dropdown toggle ─────────────────────────────────────────────────────
+function toggleExportMenu(wrapperId) {
+  const menuId = wrapperId + 'Menu';
+  const isOpen = !document.getElementById(menuId).classList.contains('hidden');
+  // Close all export menus first
+  document.querySelectorAll('[id$="Menu"]').forEach(m => m.classList.add('hidden'));
+  if (!isOpen) document.getElementById(menuId).classList.remove('hidden');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[id$="Wrap"]'))
+    document.querySelectorAll('[id$="Menu"]').forEach(m => m.classList.add('hidden'));
+});
+
+// ── Export CSV ─────────────────────────────────────────────────────────────────
+// source: 'history-page' | 'history-all' | 'filtered-page' | 'filtered-all'
+function exportCSV(source) {
+  const bom = '\uFEFF';
+  let csv   = 'Email,Status,Result,Created At,OK to Send\n';
+  let count = 0;
+
+  const buildRow = (email, status, result, time, ok) => {
+    count++;
+    return `"${email}","${status}","${result}","${time}","${ok}"\n`;
+  };
+
+  const okText = result => result === 'valid' ? '✓ Safe to send'
+    : result === 'invalid' ? '✗ Do not send' : '⚠ Review required';
+
+  if (source === 'history-page') {
+    // Visible (current page) DOM rows
+    const rows = [...document.querySelectorAll('.history-row')].filter(r => r.style.display !== 'none');
+    if (!rows.length) { showToast('No rows on current page.', 'error'); return; }
+    rows.forEach(r => {
+      const cells = r.querySelectorAll('td');
+      csv += buildRow(r.dataset.email, cells[1]?.textContent.trim()||'', cells[2]?.textContent.trim()||'', cells[3]?.textContent.trim()||'', cells[4]?.textContent.trim()||'');
+    });
+
+  } else if (source === 'history-all') {
+    // ALL_ROWS (all history, all pages)
+    if (!ALL_ROWS.length) { showToast('No history to export.', 'error'); return; }
+    ALL_ROWS.forEach(r => {
+      csv += buildRow(r.email, r.status||'', r.result||'', r.time||'', okText(r.result));
+    });
+
+  } else if (source === 'filtered-page') {
+    // Visible filtered DOM rows (current page only)
+    const rows = [...document.querySelectorAll('.filtered-row')];
+    if (!rows.length) { showToast('No rows on current page.', 'error'); return; }
+    rows.forEach(r => {
+      const cells = r.querySelectorAll('td');
+      csv += buildRow(r.dataset.email, cells[1]?.textContent.trim()||'', cells[2]?.textContent.trim()||'', cells[3]?.textContent.trim()||'', cells[4]?.textContent.trim()||'');
+    });
+
+  } else if (source === 'filtered-all') {
+    // lastFilteredRows = all rows matching current filters, all pages
+    if (!lastFilteredRows.length) { showToast('No filtered results to export.', 'error'); return; }
+    lastFilteredRows.forEach(r => {
+      csv += buildRow(r.email, r.status||'', r.result||'', r.time||'', okText(r.result));
+    });
+  }
+
+  if (!count) { showToast('Nothing to export.', 'error'); return; }
+
+  const label = source.includes('all') ? 'all' : 'page';
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(bom + csv);
+  a.download = `verifications_${label}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast(`Exported ${count} row${count>1?'s':''}!`);
+}
+
+// ── Keyboard shortcut ──────────────────────────────────────────────────────────
+document.getElementById('emailInput').addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') doVerify();
+});
+
+// ── Auto-apply file filter from URL param ──────────────────────────────────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const fileId = params.get('file_id');
+  if (!fileId) return;
+
+  // Switch to Filter tab
+  switchTab('filter');
+
+  // Find and click the matching file button
+  const btn = document.querySelector(`.fbtn[data-group="file"][onclick*="'${fileId}'"]`);
+  if (btn) {
+    btn.click();
+  } else {
+    // Fallback: set filter manually if button not found
+    filters.file = fileId;
+    applyFilters();
+  }
+
+  // Clean URL without reloading
+  window.history.replaceState({}, '', '/verify');
+})();
+</script>
+{% endblock %}

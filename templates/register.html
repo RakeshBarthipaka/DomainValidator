@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account – MailVerifyPro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+    .font-display { font-family: 'Syne', sans-serif; }
+    @keyframes float { 0%,100% { transform:translate(-50%,-50%) scale(1); opacity:.12; } 50% { transform:translate(-50%,-50%) scale(1.08); opacity:.06; } }
+    .ring { position:absolute; border-radius:50%; border:1px solid #22d3ee; top:50%; left:50%; animation:float 5s ease-in-out infinite; }
+    input:-webkit-autofill { -webkit-box-shadow:0 0 0 30px rgba(255,255,255,0.07) inset !important; -webkit-text-fill-color:#fff !important; }
+    .field:focus { border-color:rgba(6,182,212,0.6) !important; background:rgba(255,255,255,0.1) !important; }
+  </style>
+</head>
+<body style="min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f172a 100%);display:flex;">
+
+  <!-- Left decorative panel -->
+  <div class="hidden lg:flex lg:w-5/12 flex-col justify-center items-center p-16 relative overflow-hidden">
+    {% for i in range(7) %}
+    <!-- <div class="ring" style="width:{{(i+1)*110}}px;height:{{(i+1)*110}}px;animation-delay:{{i*0.7}}s"></div> -->
+    {% endfor %}
+    <div class="relative z-10 text-center">
+      <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      </div>
+      <h1 class="font-display text-4xl font-bold text-white mb-4">MailVerify<span style="color:#06b6d4">Pro</span></h1>
+      <p class="text-slate-400 text-base leading-relaxed max-w-xs">Verify emails, manage bulk lists, and deploy Jinja2 templates at scale.</p>
+      <div class="mt-10 grid grid-cols-3 gap-4">
+        {% for val, label in [("99.9%","Accuracy"),("10M+","Verified"),("< 1s","Per Check")] %}
+        <div class="text-center p-3 rounded-xl" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)">
+          <div class="font-display text-xl font-bold" style="color:#06b6d4">{{ val }}</div>
+          <div class="text-slate-500 text-xs mt-1">{{ label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="w-full lg:w-7/12 flex items-center justify-center p-6 lg:p-12">
+    <div class="w-full max-w-md">
+      <div class="rounded-2xl p-8" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px)">
+
+        <!-- Mobile logo -->
+        <div class="flex items-center gap-3 mb-7 lg:hidden">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </div>
+          <span class="font-display font-bold text-white text-lg">MailVerifyPro</span>
+        </div>
+
+        <h2 class="font-display text-2xl font-bold text-white mb-1">Create your account</h2>
+        <p class="text-slate-400 text-sm mb-6">Free forever · No credit card required</p>
+
+        <!-- Error -->
+        {% if error %}
+        <div class="mb-5 p-3.5 rounded-xl text-sm text-red-300 flex items-center gap-2.5" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3)">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/register" id="registerForm" class="space-y-4" novalidate>
+
+          <!-- Full Name -->
+          <div>
+            <label class="block text-slate-300 text-sm font-medium mb-1.5">Full name</label>
+            <input type="text" name="name" value="{{ values.name if values else '' }}"
+              placeholder="John Doe" required autocomplete="name"
+              class="field w-full px-4 py-3 rounded-xl text-white placeholder-slate-500 text-sm outline-none transition-all"
+              style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15)"/>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-slate-300 text-sm font-medium mb-1.5">Email address</label>
+            <input type="email" name="email" value="{{ values.email if values else '' }}"
+              placeholder="you@company.com" required autocomplete="email"
+              class="field w-full px-4 py-3 rounded-xl text-white placeholder-slate-500 text-sm outline-none transition-all"
+              style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15)"/>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-slate-300 text-sm font-medium mb-1.5">Password</label>
+            <div class="relative">
+              <input type="password" name="password" id="pass1"
+                placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password"
+                class="field w-full px-4 py-3 pr-11 rounded-xl text-white placeholder-slate-500 text-sm outline-none transition-all"
+                style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15)"/>
+              <button type="button" onclick="toggle('pass1','eye1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors">
+                <svg id="eye1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <label class="block text-slate-300 text-sm font-medium mb-1.5">Confirm password</label>
+            <div class="relative">
+              <input type="password" name="confirm" id="pass2"
+                placeholder="Re-enter your password" required autocomplete="new-password"
+                class="field w-full px-4 py-3 pr-11 rounded-xl text-white placeholder-slate-500 text-sm outline-none transition-all"
+                style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15)"/>
+              <button type="button" onclick="toggle('pass2','eye2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors">
+                <svg id="eye2" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="submitBtn"
+            class="w-full py-3 rounded-xl font-semibold text-white text-sm mt-1 flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+            style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+            Create account
+          </button>
+
+        </form>
+
+        <p class="text-center text-slate-500 text-xs mt-5">
+          Already have an account?
+          <a href="/login" class="text-cyan-400 hover:text-cyan-300 font-medium ml-1">Sign in →</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggle(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      const p1 = document.getElementById('pass1').value;
+      const p2 = document.getElementById('pass2').value;
+      if (p1 !== p2) {
+        e.preventDefault();
+        // Show inline error without server round-trip
+        const existing = document.getElementById('jsError');
+        if (existing) existing.remove();
+        const div = document.createElement('div');
+        div.id = 'jsError';
+        div.className = 'mb-4 p-3.5 rounded-xl text-sm text-red-300 flex items-center gap-2';
+        div.style = 'background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3)';
+        div.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Passwords do not match.';
+        this.insertBefore(div, this.firstChild);
+        return;
+      }
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Creating account...';
+    });
+  </script>
+</body>
+</html>
