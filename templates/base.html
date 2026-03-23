@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,19 +7,154 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
+
+    /* ── CSS Variable Theme System ─────────────────────────────────────────── */
+    :root,
+    [data-theme="light"] {
+      --bg-page:       #f8fafc;
+      --bg-surface:    #ffffff;
+      --bg-sidebar:    #ffffff;
+      --bg-header:     #ffffff;
+      --bg-input:      #fafafa;
+      --bg-input-focus:#ffffff;
+      --bg-hover:      #f1f5f9;
+      --bg-active:     #f0f9ff;
+      --bg-card:       #ffffff;
+      --bg-muted:      #f1f5f9;
+
+      --border:        #e2e8f0;
+      --border-light:  #f1f5f9;
+
+      --text-primary:  #0f172a;
+      --text-secondary:#475569;
+      --text-muted:    #94a3b8;
+      --text-active:   #0284c7;
+
+      --accent:        #06b6d4;
+      --accent-hover:  #0891b2;
+
+      --scrollbar-track:#f1f5f9;
+      --scrollbar-thumb:#cbd5e1;
+      --scrollbar-hover:#94a3b8;
+
+      --dropdown-bg:   #ffffff;
+      --dropdown-border:#e2e8f0;
+      --dropdown-shadow:0 10px 40px rgba(0,0,0,0.12);
+
+      --notif-dot-border:#ffffff;
+
+      --badge-green-bg:#dcfce7; --badge-green-fg:#166534;
+      --badge-red-bg:  #fee2e2; --badge-red-fg:  #991b1b;
+      --badge-blue-bg: #dbeafe; --badge-blue-fg: #1e40af;
+      --badge-amber-bg:#fef9c3; --badge-amber-fg:#854d0e;
+      --badge-gray-bg: #f1f5f9; --badge-gray-fg: #475569;
+
+      --nav-active-bg: #f0f9ff;
+      --nav-active-fg: #0284c7;
+      --nav-hover-bg:  #f8fafc;
+      --nav-hover-fg:  #475569;
+      --nav-fg:        #94a3b8;
+
+      --theme-icon-sun: block;
+      --theme-icon-moon: none;
+    }
+
+    [data-theme="dark"] {
+      --bg-page:       #0f172a;
+      --bg-surface:    #1e293b;
+      --bg-sidebar:    #1e293b;
+      --bg-header:     #1e293b;
+      --bg-input:      #0f172a;
+      --bg-input-focus:#1e293b;
+      --bg-hover:      #273549;
+      --bg-active:     #0c2340;
+      --bg-card:       #1e293b;
+      --bg-muted:      #273549;
+
+      --border:        #334155;
+      --border-light:  #1e293b;
+
+      --text-primary:  #f1f5f9;
+      --text-secondary:#94a3b8;
+      --text-muted:    #64748b;
+      --text-active:   #38bdf8;
+
+      --accent:        #06b6d4;
+      --accent-hover:  #22d3ee;
+
+      --scrollbar-track:#1e293b;
+      --scrollbar-thumb:#334155;
+      --scrollbar-hover:#475569;
+
+      --dropdown-bg:   #1e293b;
+      --dropdown-border:#334155;
+      --dropdown-shadow:0 10px 40px rgba(0,0,0,0.5);
+
+      --notif-dot-border:#1e293b;
+
+      --badge-green-bg:#052e16; --badge-green-fg:#4ade80;
+      --badge-red-bg:  #2d0a0a; --badge-red-fg:  #f87171;
+      --badge-blue-bg: #0c1a3a; --badge-blue-fg: #60a5fa;
+      --badge-amber-bg:#1c1200; --badge-amber-fg:#fbbf24;
+      --badge-gray-bg: #1e293b; --badge-gray-fg: #94a3b8;
+
+      --nav-active-bg: #0c2340;
+      --nav-active-fg: #38bdf8;
+      --nav-hover-bg:  #273549;
+      --nav-hover-fg:  #cbd5e1;
+      --nav-fg:        #64748b;
+
+      --theme-icon-sun: none;
+      --theme-icon-moon: block;
+    }
+
+    /* ── Base ────────────────────────────────────────────────────────────────── */
     * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
     .font-display { font-family: 'Syne', sans-serif; }
-    .nav-active { background: #f0f9ff !important; color: #0284c7 !important; }
-    .nav-item { color: #94a3b8; transition: all .15s ease; }
-    .nav-item:hover:not(.nav-active) { background: #f8fafc; color: #475569; }
-    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); pointer-events:none; }
-    .toast.show { transform:translateY(0); opacity:1; pointer-events:auto; }
-    ::-webkit-scrollbar { width:4px; height:4px; }
-    ::-webkit-scrollbar-track { background:#f1f5f9; }
-    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
-    ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
 
-    /* Dropdown */
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      transition: background .25s ease, color .25s ease;
+    }
+
+    /* ── Scrollbar ───────────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb  { background: var(--scrollbar-thumb); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+    /* ── Navigation ──────────────────────────────────────────────────────────── */
+    .nav-item {
+      color: var(--nav-fg);
+      transition: all .15s ease;
+    }
+    .nav-item:hover:not(.nav-active) {
+      background: var(--nav-hover-bg);
+      color: var(--nav-hover-fg);
+    }
+    .nav-active {
+      background: var(--nav-active-bg) !important;
+      color: var(--nav-active-fg) !important;
+    }
+
+    /* ── Header / Sidebar / Cards ────────────────────────────────────────────── */
+    .app-header  { background: var(--bg-header);  border-bottom: 1px solid var(--border); }
+    .app-sidebar { background: var(--bg-sidebar); border-right:  1px solid var(--border); }
+    .app-card    { background: var(--bg-card);    border:        1px solid var(--border); }
+    .app-surface { background: var(--bg-surface); }
+    .app-muted   { background: var(--bg-muted); }
+
+    /* ── Toast ───────────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* ── Dropdown ────────────────────────────────────────────────────────────── */
     .dropdown-panel {
       display: none;
       position: absolute;
@@ -27,40 +162,119 @@
       right: 0;
       z-index: 1000;
       min-width: 240px;
-      background: #fff;
-      border: 1px solid #e2e8f0;
+      background: var(--dropdown-bg);
+      border: 1px solid var(--dropdown-border);
       border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      box-shadow: var(--dropdown-shadow);
       overflow: hidden;
       animation: dropIn .15s ease;
+      transition: background .25s, border-color .25s;
     }
     .dropdown-panel.open { display: block; }
     @keyframes dropIn {
-      from { opacity:0; transform:translateY(-6px); }
-      to   { opacity:1; transform:translateY(0); }
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Notification dot */
-    .notif-dot { position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:#ef4444; border:2px solid #fff; }
+    /* ── Notification dot ────────────────────────────────────────────────────── */
+    .notif-dot {
+      position: absolute; top: 2px; right: 2px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ef4444;
+      border: 2px solid var(--notif-dot-border);
+    }
+
+    /* ── Theme toggle icons ──────────────────────────────────────────────────── */
+    .icon-sun  { display: var(--theme-icon-sun,  block); }
+    .icon-moon { display: var(--theme-icon-moon, none); }
+
+    /* ── Theme toggle button ─────────────────────────────────────────────────── */
+    .theme-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: var(--bg-muted);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .theme-btn:hover {
+      background: var(--bg-hover);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ── Inputs ──────────────────────────────────────────────────────────────── */
+    .app-input {
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      color: var(--text-primary);
+      transition: border-color .2s, background .2s;
+    }
+    .app-input:focus {
+      background: var(--bg-input-focus);
+      border-color: var(--accent);
+      outline: none;
+    }
+    .app-input::placeholder { color: var(--text-muted); }
+
+    /* ── Tables ──────────────────────────────────────────────────────────────── */
+    .app-table-row:hover { background: var(--bg-hover) !important; }
+    .app-table-header { background: var(--bg-muted); border-bottom: 1px solid var(--border); }
+
+    /* ── Text helpers ────────────────────────────────────────────────────────── */
+    .t-primary   { color: var(--text-primary); }
+    .t-secondary { color: var(--text-secondary); }
+    .t-muted     { color: var(--text-muted); }
+    .t-accent    { color: var(--accent); }
+
+    /* ── Smooth transitions on theme change ──────────────────────────────────── */
+    header, aside, main, .dropdown-panel, .app-card,
+    .app-surface, table, th, td, input, textarea, button,
+    select, .nav-item, .toast {
+      transition:
+        background .25s ease,
+        border-color .25s ease,
+        color .25s ease,
+        box-shadow .25s ease;
+    }
+
   </style>
   {% block head %}{% endblock %}
 </head>
-<body class="bg-slate-50 h-screen overflow-hidden flex flex-col">
+<body class="h-screen overflow-hidden flex flex-col">
 
-  <!-- ── Topbar ── -->
-  <header class="h-14 flex items-center justify-between px-6 flex-shrink-0 bg-white border-b border-slate-100 z-10">
+  <!-- ── Topbar ────────────────────────────────────────────────────────────── -->
+  <header class="app-header h-14 flex items-center justify-between px-6 flex-shrink-0 z-10">
 
-    <a href="/verify" class="font-display font-bold text-slate-800 text-lg hover:opacity-80 transition-opacity flex items-center gap-2">
-      <img src="https://covalenseaccessibility.blob.core.windows.net/ai-portal/covalenselogo.jpeg" alt="Covalense Logo" class="h-10 w-auto">
+    <a href="/verify" class="hover:opacity-80 transition-opacity flex items-center gap-2">
+      <img src="https://covalenseaccessibility.blob.core.windows.net/ai-portal/covalenselogo.jpeg"
+           alt="Covalense Logo" class="h-10 w-auto rounded">
     </a>
 
     <div class="flex items-center gap-2">
 
-      <!-- Notification bell -->
+      <!-- ── Theme toggle ───────────────────────────────────────────────────── -->
+      <button onclick="toggleTheme()" class="theme-btn" title="Toggle light/dark mode" aria-label="Toggle theme">
+        <!-- Sun icon (shown in light mode) -->
+        <svg class="icon-sun w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+        </svg>
+        <!-- Moon icon (shown in dark mode) -->
+        <svg class="icon-moon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </button>
+
+      <!-- ── Notification bell ──────────────────────────────────────────────── -->
       <div class="relative" id="notifWrap">
         <button onclick="togglePanel('notif')"
-          class="relative w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="theme-btn relative"
+          style="border-radius:10px">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
@@ -69,20 +283,20 @@
 
         <!-- Notification dropdown -->
         <div id="notifPanel" class="dropdown-panel" style="min-width:300px">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50">
-            <span class="font-semibold text-slate-700 text-sm">Notifications</span>
-            <button onclick="clearNotifs()" class="text-xs text-cyan-500 hover:text-cyan-700 font-medium">Mark all read</button>
+          <div class="flex items-center justify-between px-4 py-3" style="border-bottom:1px solid var(--border)">
+            <span class="font-semibold text-sm t-primary">Notifications</span>
+            <button onclick="clearNotifs()"
+              class="text-xs font-medium"
+              style="color:var(--accent)">Mark all read</button>
           </div>
-          <div id="notifList" class="max-h-72 overflow-y-auto">
-            <!-- populated by JS -->
-          </div>
-          <div class="px-4 py-2 border-t border-slate-50 text-center">
-            <span class="text-xs text-slate-400">Notifications clear on page refresh</span>
+          <div id="notifList" class="max-h-72 overflow-y-auto"></div>
+          <div class="px-4 py-2 text-center" style="border-top:1px solid var(--border)">
+            <span class="text-xs t-muted">Notifications clear on page refresh</span>
           </div>
         </div>
       </div>
 
-      <!-- Profile avatar -->
+      <!-- ── Profile avatar ─────────────────────────────────────────────────── -->
       <div class="relative" id="profileWrap">
         <button onclick="togglePanel('profile')"
           class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer hover:ring-2 hover:ring-cyan-300 transition-all"
@@ -94,61 +308,90 @@
         <!-- Profile dropdown -->
         <div id="profilePanel" class="dropdown-panel">
           <!-- Avatar header -->
-          <div class="px-5 py-4 flex items-center gap-3" style="background:linear-gradient(135deg,#f0f9ff,#eff6ff)">
+          <div class="px-5 py-4 flex items-center gap-3"
+            style="background:linear-gradient(135deg,var(--bg-active),var(--bg-muted))">
             <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
               style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
               {{ user.name[0].upper() if user and user.name else "U" }}
             </div>
             <div class="min-w-0">
-              <p class="font-semibold text-slate-800 text-sm truncate">{{ user.name if user else 'User' }}</p>
-              <p class="text-slate-500 text-xs truncate">{{ user.email if user else '' }}</p>
+              <p class="font-semibold text-sm truncate t-primary">{{ user.name if user else 'User' }}</p>
+              <p class="text-xs truncate t-secondary">{{ user.email if user else '' }}</p>
             </div>
           </div>
 
           <!-- Details -->
-          <div class="px-5 py-3 space-y-2 border-b border-slate-50">
+          <div class="px-5 py-3 space-y-2" style="border-bottom:1px solid var(--border)">
             <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-500">Member since</span>
-              <span class="font-medium text-slate-700">
-                {{ user.created_at.strftime('%b %d, %Y %I:%M %p')  if user and user.created_at else '—' }}
+              <span class="t-secondary">Member since</span>
+              <span class="font-medium t-primary">
+                {{ user.created_at.strftime('%b %d, %Y %I:%M %p') if user and user.created_at else '—' }}
               </span>
             </div>
-             <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-500">Last Login</span>
-              <span class="font-medium text-slate-700">
+            <div class="flex items-center justify-between text-xs">
+              <span class="t-secondary">Last Login</span>
+              <span class="font-medium t-primary">
                 {{ user.last_login.strftime('%b %d, %Y %I:%M %p') if user and user.last_login else '—' }}
               </span>
             </div>
             <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-500">Account</span>
-              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Active</span>
+              <span class="t-secondary">Mode</span>
+              <span id="themeBadge"
+                class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                style="background:var(--badge-blue-bg);color:var(--badge-blue-fg)">
+                Light
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="t-secondary">Account</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                style="background:var(--badge-green-bg);color:var(--badge-green-fg)">Active</span>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="p-2">
+            <!-- Theme toggle inside dropdown -->
+            <button onclick="toggleTheme()"
+              class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style="color:var(--text-secondary)"
+              onmouseover="this.style.background='var(--bg-hover)'"
+              onmouseout="this.style.background='transparent'">
+              <svg class="icon-sun w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+              </svg>
+              <svg class="icon-moon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+              </svg>
+              <span id="themeLabel">Switch to Dark Mode</span>
+            </button>
             <a href="/logout"
               onclick="return confirm('Sign out of your account?')"
-              class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
+              class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
+              style="color:#ef4444">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
               </svg>
               Sign out
             </a>
           </div>
         </div>
-      </div>
+      </div><!-- /profileWrap -->
 
     </div>
-  </header>
+  </header><!-- /header -->
 
   <div class="flex flex-1 overflow-hidden">
 
-    <!-- ── Sidebar ── -->
-    <aside class="w-20 flex flex-col items-center py-5 gap-1 flex-shrink-0 bg-white border-r border-slate-100">
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="app-sidebar w-20 flex flex-col items-center py-5 gap-1 flex-shrink-0">
 
       <!-- Lists -->
-      <a href="/lists" class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium {% if active == 'lists' %}nav-active{% endif %}">
+      <a href="/lists"
+        class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium {% if active == 'lists' %}nav-active{% endif %}">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
         </svg>
@@ -156,9 +399,11 @@
       </a>
 
       <!-- Verify -->
-      <a href="/verify" class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium {% if active == 'verify' %}nav-active{% endif %}">
+      <a href="/verify"
+        class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium {% if active == 'verify' %}nav-active{% endif %}">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
         </svg>
         <span>Verify</span>
       </a>
@@ -166,102 +411,138 @@
       <div class="flex-1"></div>
 
       <!-- Logout -->
-      <a href="/logout" class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium hover:text-red-400 hover:bg-red-50"
-        title="Sign out" onclick="return confirm('Sign out?')">
+      <a href="/logout"
+        class="nav-item w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium"
+        style="color:var(--nav-fg)"
+        onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'"
+        onmouseout="this.style.background='';this.style.color='var(--nav-fg)'"
+        title="Sign out"
+        onclick="return confirm('Sign out?')">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
         </svg>
         <span>Out</span>
       </a>
     </aside>
 
-    <!-- ── Main content ── -->
-    <main class="flex-1 overflow-hidden">
+    <!-- ── Main content ──────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-hidden" style="background:var(--bg-page)">
       {% block content %}{% endblock %}
     </main>
   </div>
 
-  <!-- Toast notification -->
+  <!-- Toast -->
   <div id="toast" class="toast px-4 py-3 rounded-xl text-sm font-medium text-white shadow-xl flex items-center gap-2"></div>
 
   <script>
-    // ── Toast ──────────────────────────────────────────────────────────────────
-    function showToast(msg, type='success') {
-      const t = document.getElementById('toast');
-      const isErr = type === 'error';
-      t.style.background = isErr ? '#dc2626' : '#059669';
-      t.innerHTML = `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        ${isErr
-          ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
-          : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>'}
-      </svg><span>${msg}</span>`;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3500);
+  // ── Theme System ─────────────────────────────────────────────────────────────
+  (function initTheme() {
+    const saved = localStorage.getItem('mvp-theme') || 'light';
+    applyTheme(saved, false);
+  })();
 
-      // Also push to notifications
-      pushNotification(msg, isErr ? 'error' : 'success');
+  function applyTheme(theme, save = true) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (save) localStorage.setItem('mvp-theme', theme);
+
+    const isDark = theme === 'dark';
+    const badge  = document.getElementById('themeBadge');
+    const label  = document.getElementById('themeLabel');
+
+    if (badge) {
+      badge.textContent = isDark ? 'Dark' : 'Light';
+      badge.style.background = isDark
+        ? 'var(--badge-gray-bg)' : 'var(--badge-blue-bg)';
+      badge.style.color = isDark
+        ? 'var(--badge-gray-fg)' : 'var(--badge-blue-fg)';
     }
+    if (label) label.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+  }
 
-    // ── Notifications store ────────────────────────────────────────────────────
-    const _notifs = [];
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
 
-    function pushNotification(msg, type='success') {
-      _notifs.unshift({ msg, type, time: new Date() });
-      renderNotifList();
-      // Show red dot
-      document.querySelector('.notif-dot').style.display = 'block';
-    }
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    const isErr = type === 'error';
+    t.style.background = isErr ? '#dc2626' : '#059669';
+    t.innerHTML = `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      ${isErr
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>'}
+    </svg><span>${msg}</span>`;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+    pushNotification(msg, isErr ? 'error' : 'success');
+  }
 
-    function renderNotifList() {
-      const list = document.getElementById('notifList');
-      if (!_notifs.length) {
-        list.innerHTML = `<div class="px-4 py-8 text-center text-slate-400 text-xs">No notifications</div>`;
-        return;
-      }
-      list.innerHTML = _notifs.map((n, i) => {
-        const isErr = n.type === 'error';
-        const timeStr = n.time.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-        return `<div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
-          <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isErr ? 'bg-red-100' : 'bg-emerald-100'}">
-            <svg class="w-3.5 h-3.5 ${isErr ? 'text-red-500' : 'text-emerald-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              ${isErr
-                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
-                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>'}
-            </svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-xs text-slate-700 leading-relaxed">${n.msg}</p>
-            <p class="text-xs text-slate-400 mt-0.5">${timeStr}</p>
-          </div>
-        </div>`;
-      }).join('');
-    }
+  // ── Notifications ────────────────────────────────────────────────────────────
+  const _notifs = [];
 
-    function clearNotifs() {
-      _notifs.length = 0;
-      renderNotifList();
-      document.querySelector('.notif-dot').style.display = 'none';
-    }
-
-    // ── Dropdown toggle ────────────────────────────────────────────────────────
-    function togglePanel(which) {
-      const panels = { notif: 'notifPanel', profile: 'profilePanel' };
-      const other  = which === 'notif' ? 'profilePanel' : 'notifPanel';
-      document.getElementById(other).classList.remove('open');
-      document.getElementById(panels[which]).classList.toggle('open');
-    }
-
-    // Close dropdowns on outside click
-    document.addEventListener('click', function(e) {
-      if (!document.getElementById('notifWrap').contains(e.target))
-        document.getElementById('notifPanel').classList.remove('open');
-      if (!document.getElementById('profileWrap').contains(e.target))
-        document.getElementById('profilePanel').classList.remove('open');
-    });
-
-    // Init: hide dot, render empty list
-    document.querySelector('.notif-dot').style.display = 'none';
+  function pushNotification(msg, type = 'success') {
+    _notifs.unshift({ msg, type, time: new Date() });
     renderNotifList();
+    document.querySelector('.notif-dot').style.display = 'block';
+  }
+
+  function renderNotifList() {
+    const list = document.getElementById('notifList');
+    if (!_notifs.length) {
+      list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted);font-size:12px">No notifications</div>`;
+      return;
+    }
+    list.innerHTML = _notifs.map(n => {
+      const isErr  = n.type === 'error';
+      const time   = n.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const iconBg = isErr
+        ? 'background:var(--badge-red-bg);color:var(--badge-red-fg)'
+        : 'background:var(--badge-green-bg);color:var(--badge-green-fg)';
+      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);"
+          onmouseover="this.style.background='var(--bg-hover)'"
+          onmouseout="this.style.background=''">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;${iconBg}">
+          <svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${isErr
+              ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+              : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>'}
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:12px;color:var(--text-primary);line-height:1.5">${n.msg}</p>
+          <p style="font-size:11px;color:var(--text-muted);margin-top:2px">${time}</p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function clearNotifs() {
+    _notifs.length = 0;
+    renderNotifList();
+    document.querySelector('.notif-dot').style.display = 'none';
+  }
+
+  // ── Dropdown toggle ───────────────────────────────────────────────────────────
+  function togglePanel(which) {
+    const ids   = { notif: 'notifPanel', profile: 'profilePanel' };
+    const other = which === 'notif' ? 'profilePanel' : 'notifPanel';
+    document.getElementById(other).classList.remove('open');
+    document.getElementById(ids[which]).classList.toggle('open');
+  }
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('notifWrap').contains(e.target))
+      document.getElementById('notifPanel').classList.remove('open');
+    if (!document.getElementById('profileWrap').contains(e.target))
+      document.getElementById('profilePanel').classList.remove('open');
+  });
+
+  // Init
+  document.querySelector('.notif-dot').style.display = 'none';
+  renderNotifList();
   </script>
   {% block scripts %}{% endblock %}
 </body>

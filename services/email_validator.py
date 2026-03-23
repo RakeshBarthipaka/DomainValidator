@@ -1,43 +1,42 @@
 """
-Middle-layer email validation using the `email-validator` library.
-Runs BEFORE NeverBounce — invalid emails are rejected with zero credits used.
+email_validator.py
+──────────────────
+Pre-validates email format before sending to NeverBounce.
 
-Install: pip install email-validator
+IMPORTANT for bulk (20k records):
+  check_deliverability=False  — skips DNS lookup per email.
+  DNS lookup per email in a 20k loop would take hours.
+  NeverBounce handles deliverability at the API level.
+
+For single-check (/api/verify), DNS check is enabled because
+the user is checking one email at a time interactively.
 """
 
 from email_validator import validate_email as _validate, EmailNotValidError
 
 
-def validate_email(email: str) -> tuple[bool, str | None]:
+def validate_email(email: str, check_dns: bool = False) -> tuple[bool, str | None]:
     """
-    Returns (should_proceed_to_api: bool, skip_reason: str | None)
-
-    True  → email passed basic checks, send to NeverBounce
-    False → email is invalid, skip API entirely
+    Returns (is_valid, reason_or_none).
+    check_dns=False for bulk (performance), True for single interactive check.
     """
     try:
-        result = _validate(email.strip(), check_deliverability=True)
-        # Normalize to canonical form (e.g. lowercased, unicode normalized)
+        _validate(email, check_deliverability=check_dns)
         return True, None
     except EmailNotValidError as e:
-        reason = str(e).lower()
-        if "disposable" in reason:
-            return False, "disposable"
-        return False, "invalid"
+        return False, str(e)
 
 
 def pre_validate_result(email: str, reason: str) -> dict:
     """Build a result dict for emails that failed pre-validation."""
-    domain = email.split("@")[1] if "@" in email else ""
-    result_map = {"disposable": "disposable", "invalid": "invalid"}
     return {
-        "email":                email.strip().lower(),
+        "email":                email,
         "job_id":               None,
-        "status":               "success",
-        "result":               result_map.get(reason, "invalid"),
-        "flags":                [f"pre_validation_{reason}"],
+        "status":               "failed",
+        "result":               "invalid",
+        "flags":                ["pre_validation_failed"],
         "suggested_correction": None,
-        "address_info":         {"original_email": email.strip().lower(), "domain": domain},
+        "address_info":         {"original_email": email},
         "execution_time":       0,
         "credits_info":         None,
         "pre_validated":        True,

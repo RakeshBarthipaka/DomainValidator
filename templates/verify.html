@@ -1,6 +1,117 @@
 {% extends "base.html" %}
 {% block title %}Verify – MailVerifyPro{% endblock %}
 
+{% block head %}
+<style>
+  /* Dark mode — history & filter table rows */
+  [data-theme="dark"] #historyBody tr:hover,
+  [data-theme="dark"] #filteredBody tr:hover { background:var(--bg-hover) !important; }
+  [data-theme="dark"] #historyBody tr,
+  [data-theme="dark"] #filteredBody tr { border-color:var(--border-light) !important; }
+
+  /* Dark mode — table header */
+  [data-theme="dark"] th {
+    background:var(--bg-muted) !important;
+    color:var(--text-muted) !important;
+    border-color:var(--border) !important;
+  }
+
+  /* Dark mode — table card wrapper */
+  [data-theme="dark"] #resultsPanel .rounded-2xl,
+  [data-theme="dark"] #filteredPanel .rounded-2xl {
+    background:var(--bg-surface) !important;
+    border-color:var(--border) !important;
+  }
+
+  /* Dark mode — pagination buttons */
+  [data-theme="dark"] #pageButtons button,
+  [data-theme="dark"] #filterPageButtons button {
+    background:var(--bg-surface) !important;
+    border-color:var(--border) !important;
+    color:var(--text-secondary) !important;
+  }
+  [data-theme="dark"] #pageButtons button:hover,
+  [data-theme="dark"] #filterPageButtons button:hover { background:var(--bg-hover) !important; }
+
+  /* Dark mode — export dropdown */
+  [data-theme="dark"] [id$="Menu"] {
+    background:var(--bg-surface) !important;
+    border-color:var(--border) !important;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5) !important;
+  }
+  [data-theme="dark"] [id$="Menu"] button { color:var(--text-secondary) !important; }
+  [data-theme="dark"] [id$="Menu"] button:hover { background:var(--bg-hover) !important; }
+
+  /* Dark mode — filter buttons */
+  [data-theme="dark"] .fbtn {
+    background:var(--bg-muted) !important;
+    color:var(--text-secondary) !important;
+  }
+
+  /* Dark mode — panels */
+  [data-theme="dark"] #resultsPanel,
+  [data-theme="dark"] #filteredPanel { background:var(--bg-page); }
+  [data-theme="dark"] #panelVerify,
+  [data-theme="dark"] #panelFilter   { background:var(--bg-surface); }
+
+  /* Dark mode — left sidebar header area */
+  [data-theme="dark"] #panelVerify .border-b,
+  [data-theme="dark"] #panelFilter .border-b { border-color:var(--border) !important; }
+
+  /* Dark mode — quick search input */
+  [data-theme="dark"] #searchInput {
+    background:var(--bg-input) !important;
+    border-color:var(--border) !important;
+    color:var(--text-primary) !important;
+  }
+
+  /* Dark mode — textarea */
+  [data-theme="dark"] #emailInput {
+    background:var(--bg-input) !important;
+    border-color:var(--border) !important;
+    color:var(--text-primary) !important;
+  }
+
+  /* Dark mode — date inputs */
+  [data-theme="dark"] #dateFrom,
+  [data-theme="dark"] #dateTo {
+    background:var(--bg-input) !important;
+    border-color:var(--border) !important;
+    color:var(--text-primary) !important;
+    color-scheme: dark;
+  }
+
+  /* Dark mode — filter email input */
+  [data-theme="dark"] #filterEmail {
+    background:var(--bg-input) !important;
+    border-color:var(--border) !important;
+    color:var(--text-primary) !important;
+  }
+
+  /* Dark mode — custom date range box */
+  [data-theme="dark"] .date-range-box {
+    background:var(--bg-muted) !important;
+    border-color:var(--border) !important;
+  }
+
+  /* Dark mode — result/filter panel header */
+  [data-theme="dark"] #resultsPanel h2,
+  [data-theme="dark"] #filteredPanel h2 { color:var(--text-primary) !important; }
+
+  /* Dark mode — tab buttons area */
+  [data-theme="dark"] .tab-row {
+    background:var(--bg-muted) !important;
+  }
+
+  /* Dark mode — empty state in table */
+  [data-theme="dark"] #emptyRow td,
+  [data-theme="dark"] #filteredEmpty td {
+    background:var(--bg-surface) !important;
+    color:var(--text-muted) !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 {% set page = page | default(1) %}
 {% set per_page = per_page | default(20) %}
@@ -9,15 +120,15 @@
 <div class="flex h-full overflow-hidden">
 
   <!-- ── Left sidebar ── -->
-  <div class="w-72 flex-shrink-0 flex flex-col bg-white border-r border-slate-100 overflow-hidden">
+  <div class="w-72 flex-shrink-0 flex flex-col overflow-hidden" style="background:var(--bg-surface);border-right:1px solid var(--border)">
 
-    <div class="p-5 pb-3 border-b border-slate-50">
+    <div class="p-5 pb-3" style="border-bottom:1px solid var(--border);background:var(--bg-surface)">
       <h1 class="font-display text-xl font-bold text-slate-800 mb-3">Verify</h1>
       <!-- Tabs -->
-      <div class="flex gap-1 p-1 rounded-xl bg-slate-100">
+      <div class="tab-row flex gap-1 p-1 rounded-xl" style="background:var(--bg-muted)">
         <button id="tabVerifyBtn" onclick="switchTab('verify')"
           class="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
-          style="background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+          style="background:var(--bg-surface);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.15)">
           Email Verify
         </button>
         <button id="tabFilterBtn" onclick="switchTab('filter')"
@@ -31,15 +142,15 @@
     <!-- ── Verify panel ── -->
     <div id="panelVerify" class="flex-1 p-5 overflow-y-auto flex flex-col gap-4">
       <div>
-        <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Enter emails</label>
+        <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">Enter emails</label>
         <textarea id="emailInput"
           placeholder="one@example.com&#10;two@example.com&#10;or comma separated..."
           rows="8"
           class="w-full p-3 rounded-xl text-sm text-slate-700 outline-none resize-none transition-all"
-          style="border:1.5px solid #e2e8f0;background:#fafafa"
-          onfocus="this.style.borderColor='#06b6d4';this.style.background='#fff'"
-          onblur="this.style.borderColor='#e2e8f0';this.style.background='#fafafa'"></textarea>
-        <p class="text-slate-400 text-xs mt-1.5">1 credit per email · max 10 · Ctrl+Enter</p>
+          style="border:1.5px solid var(--border);background:var(--bg-input)"
+          onfocus="this.style.borderColor='var(--accent)';this.style.background='var(--bg-input-focus)'"
+          onblur="this.style.borderColor='var(--border)';this.style.background='var(--bg-input)'"></textarea>
+        <p class="t-muted text-xs mt-1.5">1 credit per email · max 10 · Ctrl+Enter</p>
       </div>
       <button onclick="doVerify()" id="verifyBtn"
         class="w-full py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
@@ -57,7 +168,7 @@
 
         <!-- Email search -->
         <div>
-          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Email</label>
+          <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">Email</label>
           <div class="relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -65,15 +176,17 @@
             <input type="text" id="filterEmail" placeholder="Search by email..."
               oninput="applyFilters()"
               class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs outline-none transition-all"
-              style="border:1.5px solid #e2e8f0;background:#fafafa"
-              onfocus="this.style.borderColor='#06b6d4';this.style.background='#fff'"
-              onblur="this.style.borderColor='#e2e8f0';this.style.background='#fafafa'"/>
+              class="app-input"
+              style="border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary)"
+              onfocus="this.style.borderColor='var(--accent)';this.style.background='var(--bg-input-focus)'"
+              onblur="this.style.borderColor='var(--border)';this.style.background='var(--bg-input)'"
+              onblur="this.style.borderColor='var(--border)';this.style.background='var(--bg-input)'"/>
           </div>
         </div>
 
         <!-- Status filter -->
         <div>
-          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Status</label>
+          <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">Status</label>
           <div class="flex flex-wrap gap-1.5">
             <button onclick="setFilter('status','all',this)" data-group="status"
               class="fbtn active-filter px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all"
@@ -89,7 +202,7 @@
 
         <!-- Result filter -->
         <div>
-          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Result</label>
+          <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">Result</label>
           <div class="flex flex-wrap gap-1.5">
             <button onclick="setFilter('result','all',this)" data-group="result"
               class="fbtn active-filter px-3 py-1.5 rounded-full text-xs font-medium text-white transition-all"
@@ -108,7 +221,7 @@
 
         <!-- Created At filter -->
         <div>
-          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Created At</label>
+          <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">Created At</label>
 
           <!-- Quick presets -->
           <div class="flex flex-wrap gap-1.5 mb-3">
@@ -127,22 +240,22 @@
           </div>
 
           <!-- Custom date range -->
-          <div class="rounded-xl p-3 flex flex-col gap-2" style="background:#f8fafc;border:1.5px solid #e2e8f0">
+          <div class="date-range-box rounded-xl p-3 flex flex-col gap-2" style="background:var(--bg-muted);border:1.5px solid var(--border)">
             <div>
               <label class="block text-slate-400 text-xs mb-1">From</label>
               <input type="date" id="dateFrom" onchange="applyDateRange()"
                 class="w-full px-3 py-1.5 rounded-lg text-xs outline-none transition-all"
                 style="border:1.5px solid #e2e8f0;background:#fff;color:#334155"
-                onfocus="this.style.borderColor='#06b6d4'"
-                onblur="this.style.borderColor='#e2e8f0'"/>
+                onfocus="this.style.borderColor='var(--accent)'"
+                onblur="this.style.borderColor='var(--border)'"/>
             </div>
             <div>
               <label class="block text-slate-400 text-xs mb-1">To</label>
               <input type="date" id="dateTo" onchange="applyDateRange()"
                 class="w-full px-3 py-1.5 rounded-lg text-xs outline-none transition-all"
                 style="border:1.5px solid #e2e8f0;background:#fff;color:#334155"
-                onfocus="this.style.borderColor='#06b6d4'"
-                onblur="this.style.borderColor='#e2e8f0'"/>
+                onfocus="this.style.borderColor='var(--accent)'"
+                onblur="this.style.borderColor='var(--border)'"/>
             </div>
           </div>
         </div>
@@ -150,7 +263,7 @@
         <!-- File Name filter -->
         {% if user_files %}
         <div>
-          <label class="block text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">File Name</label>
+          <label class="block t-muted text-xs font-semibold uppercase tracking-wide mb-2">File Name</label>
           <div class="flex flex-col gap-1.5" id="fileBtns">
             <button onclick="setFilter('file','all',this)" data-group="file"
               class="fbtn w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-white transition-all flex items-center gap-2"
@@ -195,13 +308,13 @@
   </div>
 
   <!-- ── Right content ── -->
-  <div class="flex-1 overflow-y-auto bg-slate-50">
+  <div class="flex-1 overflow-y-auto" style="background:var(--bg-page)">
 
     <!-- History panel (Email Verify tab) -->
     <div id="resultsPanel" class="p-6">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-700 text-lg">Result History</h2>
+          <h2 class="font-display font-bold t-primary text-lg">Result History</h2>
           <p class="text-slate-400 text-xs mt-0.5" id="historyCount"></p>
         </div>
         <div class="flex items-center gap-2">
@@ -213,9 +326,9 @@
             <input id="searchInput" type="text" placeholder="Quick search..."
               oninput="quickSearch()"
               class="pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all w-52"
-              style="border:1.5px solid #e2e8f0;background:#fff"
-              onfocus="this.style.borderColor='#06b6d4'"
-              onblur="this.style.borderColor='#e2e8f0'"/>
+              style="border:1.5px solid var(--border);background:var(--bg-input-focus)"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor='var(--border)'"/>
           </div>
           <div class="relative" id="exportWrap">
             <button onclick="toggleExportMenu('exportWrap')"
@@ -249,10 +362,10 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+      <div class="rounded-2xl overflow-hidden shadow-sm" style="background:var(--bg-surface);border:1px solid var(--border)">
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-100">
+            <tr class="border-b" style="background:var(--bg-muted);border-color:var(--border)">
               <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Result</th>
@@ -265,7 +378,7 @@
               {% for row in history %}
               {% set is_valid   = row.result == 'valid' %}
               {% set is_invalid = row.result == 'invalid' %}
-              <tr class="border-t border-slate-50 hover:bg-slate-50 transition-colors history-row"
+              <tr class="border-t app-table-row transition-colors history-row" style="border-color:var(--border-light)""
                 data-email="{{ row.email }}"
                 data-status="{{ row.status or '' }}"
                 data-result="{{ row.result or '' }}"
@@ -275,7 +388,7 @@
                   <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full flex-shrink-0
                       {% if is_valid %}bg-emerald-400{% elif is_invalid %}bg-red-400{% else %}bg-amber-400{% endif %}"></span>
-                    <span class="font-mono text-slate-700 text-xs">
+                    <span class="font-mono t-primary text-xs">
                       {{ row.email[:38] }}{% if row.email|length > 38 %}…{% endif %}
                     </span>
                   </div>
@@ -322,7 +435,7 @@
           </tbody>
         </table>
       </div>
-      <p class="text-slate-400 text-xs mt-3">
+      <p class="t-muted text-xs mt-3">
         <a href="https://neverbounce.com/help/status-mapping" target="_blank"
           class="text-cyan-500 hover:text-cyan-700 transition-colors">Learn more about NeverBounce status mapping ↗</a>
       </p>
@@ -338,7 +451,7 @@
     <div id="filteredPanel" class="hidden p-6">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-700 text-lg">Filtered Results</h2>
+          <h2 class="font-display font-bold t-primary text-lg">Filtered Results</h2>
           <p class="text-slate-400 text-xs mt-0.5" id="filteredCount">Showing all results</p>
         </div>
         <div class="relative" id="exportFilterWrap">
@@ -372,10 +485,10 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+      <div class="rounded-2xl overflow-hidden shadow-sm" style="background:var(--bg-surface);border:1px solid var(--border)">
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-100">
+            <tr class="border-b" style="background:var(--bg-muted);border-color:var(--border)">
               <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Result</th>
@@ -553,10 +666,10 @@ function renderFilteredPage(page) {
     const okColor = isValid ? 'text-emerald-600' : isInvalid ? 'text-red-500' : 'text-amber-600';
     const okText  = isValid ? '✓ Safe to send' : isInvalid ? '✗ Do not send' : '⚠ Review required';
     const emailTrunc = r.email.length > 38 ? r.email.slice(0,38)+'…' : r.email;
-    return `<tr class="border-t border-slate-50 hover:bg-slate-50 filtered-row" data-email="${r.email}">
+    return `<tr class="border-t app-table-row filtered-row" style="border-color:var(--border-light)"" data-email="${r.email}">
       <td class="px-5 py-3"><div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotColor}"></span>
-        <span class="font-mono text-slate-700 text-xs">${emailTrunc}</span>
+        <span class="font-mono t-primary text-xs">${emailTrunc}</span>
       </div></td>
       <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}">${r.status?r.status[0].toUpperCase()+r.status.slice(1):'—'}</span></td>
       <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${resultBadge}">${r.result?r.result[0].toUpperCase()+r.result.slice(1):'—'}</span></td>
@@ -604,14 +717,25 @@ function renderPaginationBar(barId, infoId, btnsId, curPage, totalPages, start, 
   btns.innerHTML = '';
 
   const base   = 'w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-all';
-  const inact  = `${base} text-slate-600 bg-white border border-slate-200 hover:bg-slate-50`;
+  const inact  = `${base}`; // styled via CSS vars in JS below
   const disab  = `${base} text-slate-300 bg-white border border-slate-100 cursor-not-allowed`;
   const active = `${base} text-white`;
 
   const mk = (html, cls, cb) => {
     const el = cb ? document.createElement('button') : document.createElement('span');
     el.className = cls; el.innerHTML = html;
-    if (cb) el.onclick = cb;
+    el.style.cssText = `
+      background:var(--bg-surface);
+      border:1px solid var(--border);
+      color:var(--text-secondary);
+      cursor:${cb?'pointer':'not-allowed'};
+      opacity:${cb?1:0.4};
+    `;
+    if (cb) {
+      el.onmouseover = () => el.style.background = 'var(--bg-hover)';
+      el.onmouseout  = () => el.style.background = 'var(--bg-surface)';
+      el.onclick = cb;
+    }
     btns.appendChild(el);
   };
 
@@ -630,7 +754,7 @@ function renderPaginationBar(barId, infoId, btnsId, curPage, totalPages, start, 
   for (let p = ws; p <= we; p++) {
     if (p === curPage) {
       const el = document.createElement('span');
-      el.className = active; el.style.background='#0f172a'; el.textContent = p;
+      el.className = active; el.style.cssText='background:var(--accent);color:#fff;border:1px solid var(--accent);cursor:default'; el.textContent = p;
       btns.appendChild(el);
     } else {
       mk(String(p), inact, ((pg)=>()=>goTo(pg))(p));
@@ -667,7 +791,8 @@ function renderPage(page) {
   const end   = start + PAGE_SIZE;
 
   allRows.forEach(r => r.style.display = 'none');
-  matching.forEach((r, i) => { r.style.display = (i >= start && i < end) ? '' : 'none'; });
+  matching.forEach((r, i) => { r.style.display = (i >= start && i < end) ? '' : 'none';
+        r.style.borderColor = 'var(--border-light)'; });
 
   const countEl = document.getElementById('historyCount');
   if (countEl) countEl.textContent = total === 0 ? '0 results' : `Showing ${start+1}–${Math.min(end,total)} of ${total}`;
@@ -735,14 +860,14 @@ async function doVerify() {
       ALL_ROWS.unshift({ email: r.email, status: r.status, result: r.result, time: r.created_at, ts: Date.now()/1000, file_id: r.file_id || null });
 
       const tr = document.createElement('tr');
-      tr.className = 'border-t border-slate-50 hover:bg-slate-50 transition-colors history-row';
+      tr.className = 'border-t app-table-row transition-colors history-row" style="border-color:var(--border-light)"';
       tr.dataset.email  = r.email;
       tr.dataset.status = r.status;
       tr.dataset.result = r.result;
       tr.innerHTML = `
         <td class="px-5 py-3"><div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full flex-shrink-0 ${dotColor}"></span>
-          <span class="font-mono text-slate-700 text-xs">${r.email.length>38?r.email.slice(0,38)+'…':r.email}</span>
+          <span class="font-mono t-primary text-xs">${r.email.length>38?r.email.slice(0,38)+'…':r.email}</span>
           ${whitelistedBadge}
         </div></td>
         <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}">${r.status?r.status[0].toUpperCase()+r.status.slice(1):'—'}</span></td>
