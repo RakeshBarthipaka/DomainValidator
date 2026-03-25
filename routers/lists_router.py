@@ -374,6 +374,14 @@ async def upload_file(request: Request, file: UploadFile = File(...), db: Sessio
     if ext not in ["csv", "xls", "xlsx"]:
         return JSONResponse({"error": "Only CSV or Excel files are allowed"}, status_code=400)
 
+    # Check for duplicate file name
+    existing_file = db.query(UploadedFile).filter(
+        UploadedFile.user_id == user.id,
+        UploadedFile.file_name == file.filename
+    ).first()
+    if existing_file:
+        return JSONResponse({"error": "A file with this name has already been uploaded."}, status_code=400)
+
     content = await file.read()
 
     # Extract full records (email + website + company_name)
