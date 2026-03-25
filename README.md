@@ -52,39 +52,39 @@ graph TD
     classDef external fill:#fff7ed,stroke:#fdba74,stroke-width:2px,color:#9a3412
 
     %% Components
-    UI[Frontend UI (Jinja2 / Vanilla JS)]:::ui
-    Router[FastAPI Upload Router]:::api
-    Postgres[(PostgreSQL Vector DB)]:::db
-    Worker[[Background Validation Worker]]:::worker
-    NeverBounce((NeverBounce API)):::external
-    ExcelWriter[Excel Write-back Service]:::worker
+    UI["Frontend UI (Jinja2 / Vanilla JS)"]:::ui
+    Router["FastAPI Upload Router"]:::api
+    Postgres[("PostgreSQL Vector DB")]:::db
+    Worker[["Background Validation Worker"]]:::worker
+    NeverBounce(("NeverBounce API")):::external
+    ExcelWriter["Excel Write-back Service"]:::worker
 
     %% Flow
-    UI -->|Uploads CSV / Excel| Router
-    Router -->|Checks for Duplicate Names| Postgres
-    Router -->|Saves Uploaded File Data| Postgres
-    Router -->|Triggers Background Task| Worker
+    UI -->|"Uploads CSV / Excel"| Router
+    Router -->|"Checks for Duplicate Names"| Postgres
+    Router -->|"Saves Uploaded File Data"| Postgres
+    Router -->|"Triggers Background Task"| Worker
 
     subgraph "Validation Pipeline (Per Record)"
-        Worker -->|Step 1: Domain Match| DM{Domain Matches Target?}
-        DM -->|Mismatch / Missing| Log1[Log: Domain Mismatch]
-        DM -->|Match| PreCheck{Step 2: Syntax / DNS Pre-check}
-        PreCheck -->|Invalid Format| Log2[Log: Invalid]
-        PreCheck -->|Valid| Queue(Queue for Batching)
+        Worker -->|"Step 1: Domain Match"| DM{"Domain Matches Target?"}
+        DM -->|"Mismatch / Missing"| Log1["Log: Domain Mismatch"]
+        DM -->|"Match"| PreCheck{"Step 2: Syntax / DNS Pre-check"}
+        PreCheck -->|"Invalid Format"| Log2["Log: Invalid"]
+        PreCheck -->|"Valid"| Queue("Queue for Batching")
     end
 
-    Queue -->|Step 3: Bulk Verification| NeverBounce
-    NeverBounce -->|Returns Valid / Invalid / Catch-all| Log3[Log: API Result]
+    Queue -->|"Step 3: Bulk Verification"| NeverBounce
+    NeverBounce -->|"Returns Valid / Invalid / Catch-all"| Log3["Log: API Result"]
 
-    Log1 -.->|Stores Logs in chunks| Postgres
-    Log2 -.->|Stores Logs in chunks| Postgres
-    Log3 -.->|Stores Logs in chunks| Postgres
+    Log1 -.->|"Stores Logs in chunks"| Postgres
+    Log2 -.->|"Stores Logs in chunks"| Postgres
+    Log3 -.->|"Stores Logs in chunks"| Postgres
 
-    Log1 -.->|Writes result| ExcelWriter
-    Log2 -.->|Writes result| ExcelWriter
-    Log3 -.->|Writes result| ExcelWriter
+    Log1 -.->|"Writes result"| ExcelWriter
+    Log2 -.->|"Writes result"| ExcelWriter
+    Log3 -.->|"Writes result"| ExcelWriter
 
-    ExcelWriter -->|Generates Result File| UI
+    ExcelWriter -->|"Generates Result File"| UI
 ```
 
 **The 3-Step Validation Pipeline:**
